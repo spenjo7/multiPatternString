@@ -1,8 +1,9 @@
 class multiPatternString{	
-	constructor( string){
+	constructor( string ){
 		this._rgx = /\{([^{}]+)\}/ig
 		this.fullString = string.trim()
 		this._blanks = this._matchAll()
+		this._isLoud = false
 
 		return this
 	}
@@ -20,25 +21,54 @@ class multiPatternString{
 		return blanks
 	}
 
+	getKeyList(){
+		return this._blanks.map( el => el.key )
+	}
+
+	getKeyIndex( key ){
+		return this.getKeyList().indexOf(key)
+	}
+
+	hasKey( key ){
+		return this.getKeyIndex( key ) < 0 ? false : true
+	}
+
 	setByIndex( ind, val ){
 		const { length } = this._blanks
-		if ( ind < 0 || ind >= length ){
-			console.error(`Out of bounds index: ${ind} for length ${length}`)
-			return
+		const outOfBounds = ( ind < 0 || ind >= length )
+
+		if ( !outOfBounds ){
+			this._blanks[ind].value = val
+			return this
 		}
-		this._blanks[ind].value = val
+
+		if( this._isLoud ){
+			console.error(`Out of bounds index: ${ind} for length ${length}`)
+		}
+		
+		return this
 	}
 
 	setByKey( key, val ){
-		const keys = this._blanks.map( el => el.key )
-		const ind = keys.indexOf(key)
+		const _hasKey = this.hasKey(key)
 
-		if ( ind < 0 ){
-			let keyList = keys.join(', ')
-			console.error(`Invalid key: ${key} for [ ${keyList} ]`)
-			return
+		if( _hasKey ){
+			const ind = this.getKeyIndex(key)
+			this._blanks[ind].value = val
+			return this
 		}
-		this._blanks[ind].value = val
+
+		if ( this._isLoud ){
+			const keyList = this.getKeyList().join(', ')
+			console.error(`Invalid key: ${key} for [ ${keyList} ]`)
+		}
+
+		return this
+	}
+
+	louder(){
+		this._isLoud = true
+		return this
 	}
 
 	toString(){
